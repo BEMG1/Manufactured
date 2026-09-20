@@ -1,17 +1,16 @@
-# Backend
-backend/node_modules/
-backend/dist/
-backend/.env
-backend/.env.local
-backend/*.log
+# Dependencies
+node_modules/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/*.log
-frontend/.vite/
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
 
 # OS files
 .DS_Store
@@ -22,3 +21,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Vite
+.vite/

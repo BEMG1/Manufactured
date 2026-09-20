@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-teal: #0bb4cd;
+  --color-brand-green: #00823b;
+  --color-brand-light: #8cc63f;
+  
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+}
