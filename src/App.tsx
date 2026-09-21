@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { ConfigProvider } from "./context/ConfigContext";
 import { AuthContextProvider } from "./context/AuthContext";
@@ -10,12 +10,12 @@ export default function App() {
     <ConfigProvider>
       <CartProvider>
         <AuthContextProvider>
-          <BrowserRouter>
+          <Router>
             <Routes>
               <Route path="/" element={<MainPage />} />
               <Route path="/admin" element={<AdminPage />} />
             </Routes>
-          </BrowserRouter>
+          </Router>
         </AuthContextProvider>
       </CartProvider>
     </ConfigProvider>

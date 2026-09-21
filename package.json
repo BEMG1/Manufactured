@@ -1,13 +1,16 @@
 {
-  "name": "quimicos-frontend",
+  "name": "Manufactured",
   "version": "1.0.0",
   "description": "Frontend for chemical products web application",
   "type": "module",
+  "homepage": "https://BEMG17.github.io/Manufactured/",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -23,6 +26,7 @@
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.6.1",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.3.3",
