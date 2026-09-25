@@ -1,15 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-brand-teal: #0bb4cd;
-  --color-brand-green: #00823b;
-  --color-brand-light: #8cc63f;
+  --color-brand-teal: #00B4D8;
+  --color-brand-green: #1B5E20;
+  --color-brand-light: #48BB78;
   
   --font-sans: "Inter", sans-serif;
+  --font-heading: "Plus Jakarta Sans", sans-serif;
 }
 
 @layer base {
   html {
     font-family: 'Inter', sans-serif;
+    color: #0b1c30;
+    background-color: #f8f9ff;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
   }
 }

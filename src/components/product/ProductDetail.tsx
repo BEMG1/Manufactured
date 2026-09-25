@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { IProduct } from "../../interfaces/IProduct";
 import { ProductProvider } from "../../providers/ProductProvider";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
-import { useCart } from "../../context/CartContext";
+import { useCartContext } from "../../context/CartContext";
 import { Button } from "../ui/Button";
 
 interface ProductDetailProps {
@@ -11,7 +11,7 @@ interface ProductDetailProps {
 }
 
 export function ProductDetail({ productId, onBack }: ProductDetailProps) {
-  const { addToCart } = useCart();
+  const { addToCart } = useCartContext();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");

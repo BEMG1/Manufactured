@@ -1,4 +1,4 @@
-import { useCart } from "../../context/CartContext";
+import { useCartContext } from "../../context/CartContext";
 import { ArrowLeft, X, MessageCircle } from "lucide-react";
 import { Button } from "../ui/Button";
 
@@ -7,7 +7,7 @@ interface CartViewProps {
 }
 
 export function CartView({ onBack }: CartViewProps) {
-  const { cart, cartTotal, updateQuantity, removeFromCart, checkout } = useCart();
+  const { cart, cartTotal, updateQuantity, removeFromCart, checkout } = useCartContext();
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 animate-[fadeIn_0.3s_ease-out]">

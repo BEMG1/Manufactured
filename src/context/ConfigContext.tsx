@@ -49,10 +49,10 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useConfig() {
+export function useConfigContext() {
   const context = useContext(ConfigContext);
   if (context === undefined) {
-    throw new Error("useConfig must be used within a ConfigProvider");
+    throw new Error("useConfigContext must be used within a ConfigProvider");
   }
   return context;
 }

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, ReactNode } from "react";
 import { IProduct } from "../interfaces/IProduct";
-import { useConfig } from "./ConfigContext";
+import { useConfigContext } from "./ConfigContext";
 
 export interface CartItem {
   product: IProduct;
@@ -20,7 +20,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { config } = useConfig();
+  const { config } = useConfigContext();
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const addToCart = (product: IProduct) => {
@@ -94,10 +94,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useCart() {
+export function useCartContext() {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
+    throw new Error("useCartContext must be used within a CartProvider");
   }
   return context;
 }
