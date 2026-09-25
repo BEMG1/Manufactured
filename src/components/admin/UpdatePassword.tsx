@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuthContext } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
 import { KeyRound, ShieldAlert } from "lucide-react";
 
@@ -14,8 +14,7 @@ export function UpdatePassword({ username, onUpdateSuccess, onCancel }: UpdatePa
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { updatePassword } = useAuth();
+  const { updatePassword } = useAuthContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

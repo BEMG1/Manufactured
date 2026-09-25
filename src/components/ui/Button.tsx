@@ -13,13 +13,13 @@ export function Button({
   children, 
   ...props 
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-teal disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] cursor-pointer";
+  const baseStyles = "inline-flex items-center justify-center gap-2 font-bold font-heading tracking-wide rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-teal disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] cursor-pointer";
   
   const variants = {
-    primary: "bg-brand-teal text-white shadow-md hover:bg-brand-teal/90 hover:shadow-lg",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-    outline: "border-2 border-gray-200 bg-white text-gray-700 hover:border-brand-teal hover:bg-brand-teal/5 hover:text-brand-teal",
-    ghost: "text-gray-700 hover:bg-gray-100",
+    primary: "bg-brand-teal text-white shadow-level-1 hover:bg-[#0096C7] hover:shadow-level-2",
+    secondary: "border-2 border-brand-green bg-transparent text-brand-green hover:bg-brand-green/5 hover:shadow-sm",
+    outline: "border-2 border-stone bg-white text-gray-700 hover:border-brand-teal hover:bg-brand-teal/5 hover:text-brand-teal",
+    ghost: "text-gray-700 hover:bg-surface-dim",
     danger: "bg-red-50 text-red-600 hover:bg-red-100",
   };
   

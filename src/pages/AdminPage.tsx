@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuthContext } from "../context/AuthContext";
 import { Login } from "../components/admin/Login";
 import { Button } from "../components/ui/Button";
-import { LogOut, LayoutDashboard, Package, Tags, Menu, X } from "lucide-react";
+import { LogOut, Package, Tags, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AdminProducts } from "../components/admin/AdminProducts";
 import { AdminCategories } from "../components/admin/AdminCategories";
@@ -10,7 +10,7 @@ import { AdminCategories } from "../components/admin/AdminCategories";
 type AdminView = "dashboard" | "products" | "categories";
 
 export function AdminPage() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuthContext();
   const [currentView, setCurrentView] = useState<AdminView>("products");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -55,10 +55,15 @@ export function AdminPage() {
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 sticky top-0 h-screen">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="bg-brand-teal p-2 rounded-lg text-white">
-              <LayoutDashboard className="w-5 h-5" />
+            <div className="relative flex items-center justify-center p-1.5 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-sm group-hover:border-brand-light transition-colors">
+              <img alt="Manufactured Logo" className="h-10 w-10 object-contain rounded-xl" src={`${import.meta.env.BASE_URL}images/Logo.png`} />
             </div>
-            <h1 className="text-lg font-bold text-gray-900">Admin</h1>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-black tracking-tight text-slate-900 group-hover:text-brand-green transition-colors leading-tight">Manufactured</span>                
+              </div>
+              <span className="text-[10px] font-extrabold tracking-widest text-brand-teal uppercase leading-none">ECO-FRIENDLY SOLUTIONS S.A.S</span>
+            </div>
           </div>
         </div>
         <div className="flex-1 px-4 py-6 space-y-2">
@@ -76,10 +81,15 @@ export function AdminPage() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-brand-teal p-2 rounded-lg text-white">
-              <LayoutDashboard className="w-5 h-5" />
+            <div className="relative flex items-center justify-center p-1.5 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-sm group-hover:border-brand-light transition-colors">
+              <img alt="Manufactured Logo" className="h-10 w-10 object-contain rounded-xl" src={`${import.meta.env.BASE_URL}images/Logo.png`} />
             </div>
-            <h1 className="text-lg font-bold text-gray-900">Admin</h1>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-black tracking-tight text-slate-900 group-hover:text-brand-green transition-colors leading-tight">Manufactured</span>                
+              </div>
+              <span className="text-[10px] font-extrabold tracking-widest text-brand-teal uppercase leading-none">ECO-FRIENDLY SOLUTIONS S.A.S</span>
+            </div>
           </div>
           <button 
             className="p-2 text-gray-600"

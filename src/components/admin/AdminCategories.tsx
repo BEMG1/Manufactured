@@ -1,39 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CategoryProvider } from "../../providers/CategoryProvider";
 import { ICategory } from "../../interfaces/ICategory";
 import { Button } from "../ui/Button";
-import { Plus, Tag, Edit2, X } from "lucide-react";
+import { Plus, Tag, Edit2, X, Trash2 } from "lucide-react";
+import { useCategoryContext } from "../../context/CategoryContext";
+
+import { ShowMessageConfirm } from "../ui/ShowMessageConfirm";
+import { ShowMessage } from "../ui/ShowMessage";
 
 export function AdminCategories() {
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { categories, isLoadingCategories, refreshCategories, deleteCategory } = useCategoryContext();
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Confirm and Message State
+  const [deleteConfirm, setDeleteConfirm] = useState<{isOpen: boolean, id: string, name: string} | null>(null);
+  const [message, setMessage] = useState<{isOpen: boolean, title: string, text: string, variant: "error"|"success"|"info"} | null>(null);
   
   // Form state
   const [catName, setCatName] = useState("");
   const [catDesc, setCatDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
-    try {
-      setIsLoading(true);
-      const data = await CategoryProvider.getCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error("Error loading categories:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const openCreateModal = () => {
     setIsEditing(false);
@@ -57,6 +48,22 @@ export function AdminCategories() {
     setIsModalOpen(false);
   };
 
+  const handleDelete = (id: string, name: string) => {
+    setDeleteConfirm({ isOpen: true, id, name });
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
+    const idToDelete = deleteConfirm.id;
+    setDeleteConfirm(null); // Cerrar el modal inmediatamente
+    
+    try {
+      await deleteCategory(idToDelete);
+    } catch (err: any) {
+      setMessage({ isOpen: true, title: "Error", text: err.message || "Error al eliminar", variant: "error" });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName) {
@@ -74,7 +81,7 @@ export function AdminCategories() {
         await CategoryProvider.createCategory(catName, catDesc);
       }
       
-      await loadCategories();
+      await refreshCategories();
       closeModal();
     } catch (err: any) {
       setError(err.message || "Error al guardar la categoría");
@@ -117,7 +124,7 @@ export function AdminCategories() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
+              {isLoadingCategories ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
                     Cargando categorías...
@@ -135,13 +142,22 @@ export function AdminCategories() {
                     <td className="px-6 py-4 font-medium text-gray-900">{cat.name}</td>
                     <td className="px-6 py-4 text-gray-500 text-sm">{cat.description || <span className="text-gray-300 italic">Sin descripción</span>}</td>
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => openEditModal(cat)}
-                        className="p-2 text-gray-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors"
-                        title="Editar categoría"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-center items-center gap-2">
+                        <button 
+                          onClick={() => openEditModal(cat)}
+                          className="p-2 text-gray-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors"
+                          title="Editar categoría"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(cat.id, cat.name)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar categoría"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -220,6 +236,30 @@ export function AdminCategories() {
         </div>
       )}
       
+      {/* Confirmación y Mensajes */}
+      <ShowMessageConfirm 
+        isOpen={deleteConfirm?.isOpen || false}
+        options={{
+          title: "Eliminar Categoría",
+          message: `¿Estás seguro de que deseas eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`,
+          confirmText: "Eliminar",
+          cancelText: "Cancelar",
+          variant: "danger"
+        }}
+        onConfirm={executeDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
+      <ShowMessage 
+        isOpen={message?.isOpen || false}
+        options={{
+          title: message?.title || "",
+          message: message?.text || "",
+          variant: message?.variant
+        }}
+        onClose={() => setMessage(null)}
+      />
+
     </div>
   );
 }

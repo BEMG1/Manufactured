@@ -9,8 +9,8 @@ export class ProductProvider {
     let products: IProduct[] = [];
 
     // Try to get from cache first
-    if (StorageProvider.isCacheValid()) {
-      const cached = StorageProvider.get<IProduct[]>("quimipro_products");
+    if (StorageProvider.isCacheValid("products")) {
+      const cached = StorageProvider.get<IProduct[]>("products");
       if (cached) {        
         products = cached;
       }
@@ -55,8 +55,8 @@ export class ProductProvider {
       });
       
       // Cache the results
-      StorageProvider.set("quimipro_products", products);
-      StorageProvider.setLastFetchTime();
+      StorageProvider.set("products", products);
+      StorageProvider.setLastFetchTime("products");
     }
 
     // Apply filters
@@ -85,8 +85,7 @@ export class ProductProvider {
   }
 
   static clearCache() {
-    localStorage.removeItem("quimipro_products");
-    localStorage.removeItem("quimipro_last_fetch");
+    StorageProvider.clearCache("products");
   }
 
   static async createProduct(
@@ -155,5 +154,72 @@ export class ProductProvider {
     
     this.clearCache();
     return true;
+  }
+
+  static async deleteProduct(id: string): Promise<boolean> {
+    if (!SCRIPT_URL) throw new Error("VITE_GOOGLE_APPS_SCRIPT_URL no está configurada.");
+
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "deleteProduct",
+        id
+      }),
+    });
+    
+    if (!response.ok) throw new Error("Error de conexión al eliminar producto");
+    
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.error || "No se pudo eliminar el producto");
+    }
+    
+    this.clearCache();
+    return true;
+  }
+
+  static async searchProducts(query: string): Promise<IProduct[]> {
+    if (!SCRIPT_URL) throw new Error("VITE_GOOGLE_APPS_SCRIPT_URL no está configurada.");
+
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "searchProducts",
+        query
+      }),
+    });
+    
+    if (!response.ok) throw new Error("Error de conexión al buscar productos");
+    
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.error || "No se pudo realizar la búsqueda");
+    }
+    
+    let products = result.data || [];
+    
+    products = products.map((p: any) => {
+      let imageUrl = String(p.URL_Imagen || "");
+      
+      const fileIdMatch = imageUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      let fileId = null;
+      
+      if (fileIdMatch && fileIdMatch[1]) {
+        fileId = fileIdMatch[1];
+      } else {
+        const idMatch = imageUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (idMatch && idMatch[1]) {
+          fileId = idMatch[1];
+        }
+      }
+      
+      if (fileId) {
+        imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+      }
+      
+      return { ...p, URL_Imagen: imageUrl, Categoría: p.Categoría || p.Categoria } as IProduct;
+    });
+
+    return products;
   }
 }

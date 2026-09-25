@@ -1,21 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { ProductProvider } from "../../providers/ProductProvider";
-import { CategoryProvider } from "../../providers/CategoryProvider";
 import { IProduct } from "../../interfaces/IProduct";
-import { ICategory } from "../../interfaces/ICategory";
 import { Button } from "../ui/Button";
-import { Edit2, Search, Plus, Package, X, Upload } from "lucide-react";
+import { Edit2, Search, Plus, Package, X, Upload, Trash2 } from "lucide-react";
+import { useDataContext } from "../../context/DataContext";
+import { useCategoryContext } from "../../context/CategoryContext";
+import { ShowMessageConfirm } from "../ui/ShowMessageConfirm";
+import { ShowMessage } from "../ui/ShowMessage";
 
 export function AdminProducts() {
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { products, isLoading, refreshData, deleteProduct } = useDataContext();
+  const { categories } = useCategoryContext();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Confirm and Message State
+  const [deleteConfirm, setDeleteConfirm] = useState<{isOpen: boolean, id: string, nombre: string} | null>(null);
+  const [message, setMessage] = useState<{isOpen: boolean, title: string, text: string, variant: "error"|"success"|"info"} | null>(null);
 
   // Form State
   const [nombre, setNombre] = useState("");
@@ -30,26 +35,6 @@ export function AdminProducts() {
   const [error, setError] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      const [prodData, catData] = await Promise.all([
-        ProductProvider.getProducts(),
-        CategoryProvider.getCategories()
-      ]);
-      setProducts(prodData);
-      setCategories(catData);
-    } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const openCreateModal = () => {
     setIsEditing(false);
@@ -130,12 +115,37 @@ export function AdminProducts() {
         );
       }
 
-      await loadData();
+      await refreshData();
       closeModal();
     } catch (err: any) {
       setError(err.message || "Error al guardar el producto");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "");
+    if (rawValue === "") {
+      setPrecio("");
+    } else {
+      setPrecio(Number(rawValue));
+    }
+  };
+
+  const handleDelete = (id: string, nombre: string) => {
+    setDeleteConfirm({ isOpen: true, id, nombre });
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
+    const idToDelete = deleteConfirm.id;
+    setDeleteConfirm(null); // Cerrar el modal inmediatamente
+    
+    try {
+      await deleteProduct(idToDelete);
+    } catch (err: any) {
+      setMessage({ isOpen: true, title: "Error", text: err.message || "Error al eliminar", variant: "error" });
     }
   };
 
@@ -233,13 +243,22 @@ export function AdminProducts() {
                       $ {Number(product.Precio).toFixed(2)}
                     </td>
                     <td className="px-6 py-3 text-center">
-                      <button 
-                        onClick={() => openEditModal(product)}
-                        className="p-2 text-gray-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors"
-                        title="Editar producto"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-center items-center gap-2">
+                        <button 
+                          onClick={() => openEditModal(product)}
+                          className="p-2 text-gray-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors"
+                          title="Editar producto"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(String(product.ID || (product as any).Id), product.Nombre)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar producto"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -361,17 +380,20 @@ export function AdminProducts() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio ($) *</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      min="0"
-                      value={precio}
-                      onChange={(e) => setPrecio(e.target.value ? Number(e.target.value) : "")}
-                      disabled={isSubmitting}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-brand-teal outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="0.00"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 font-medium">$</span>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={precio === "" ? "" : new Intl.NumberFormat("es-CO").format(Number(precio))}
+                        onChange={handlePriceChange}
+                        disabled={isSubmitting}
+                        className="w-full pl-8 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-brand-teal outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 </div>
                 
@@ -389,6 +411,30 @@ export function AdminProducts() {
         </div>
       )}
       
+      {/* Confirmación y Mensajes */}
+      <ShowMessageConfirm 
+        isOpen={deleteConfirm?.isOpen || false}
+        options={{
+          title: "Eliminar Producto",
+          message: `¿Estás seguro de que deseas eliminar "${deleteConfirm?.nombre}"? Esta acción no se puede deshacer.`,
+          confirmText: "Eliminar",
+          cancelText: "Cancelar",
+          variant: "danger"
+        }}
+        onConfirm={executeDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
+      <ShowMessage 
+        isOpen={message?.isOpen || false}
+        options={{
+          title: message?.title || "",
+          message: message?.text || "",
+          variant: message?.variant
+        }}
+        onClose={() => setMessage(null)}
+      />
+
     </div>
   );
 }

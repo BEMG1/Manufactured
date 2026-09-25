@@ -27,10 +27,10 @@ export function MainPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#F8FAF8] text-slate-800 font-sans antialiased selection:bg-brand-light selection:text-white">
       <Header onNavigate={handleNavigate} />
 
-      <main className="flex-1 pb-10">
+      <div className="flex-1 pb-10">
         {currentView === "list" && (
           <ProductList onProductClick={handleProductClick} />
         )}
@@ -45,7 +45,7 @@ export function MainPage() {
         {currentView === "cart" && (
           <CartView onBack={handleBackToList} />
         )}
-      </main>
+      </div>
 
       <Footer />
     </div>
