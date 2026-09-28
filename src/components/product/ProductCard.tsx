@@ -1,5 +1,6 @@
 import { IProduct } from "../../interfaces/IProduct";
 import { useCartContext } from "../../context/CartContext";
+import { useCategoryContext } from "../../context/CategoryContext";
 import { Plus } from "lucide-react";
 
 interface ProductCardProps {
@@ -9,6 +10,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const { addToCart } = useCartContext();
+  const { categories } = useCategoryContext();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -26,7 +28,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         {product.Categoría && (
           <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
             <span className="bg-brand-green text-brand-light text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-brand-green/50 shadow-sm">
-              {product.Categoría}
+              {categories.find(c => c.id === product.Categoría)?.name || product.Categoría}
             </span>
           </div>
         )}        
