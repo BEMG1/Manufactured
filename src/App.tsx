@@ -7,6 +7,8 @@ import { CategoryContextProvider } from "./context/CategoryContext";
 import { LoaderProvider } from "./context/LoaderContext";
 import { MainPage } from "./pages/MainPage";
 import { AdminPage } from "./pages/AdminPage";
+import { TermsPage } from "./pages/TermsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 
 export default function App() {
   return (
@@ -20,6 +22,8 @@ export default function App() {
                     <Routes>
                       <Route path="/" element={<MainPage />} />
                       <Route path="/admin" element={<AdminPage />} />
+                      <Route path="/terminos" element={<TermsPage />} />
+                      <Route path="/privacidad" element={<PrivacyPage />} />
                     </Routes>
                   </Router>
                 </AuthContextProvider>

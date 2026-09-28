@@ -5,7 +5,7 @@ import { StorageProvider } from "./StorageProvider";
 const SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
 
 export class ProductProvider {
-  static async getProducts(category?: string, search?: string): Promise<IProduct[]> {
+  static async getProducts(categoryId?: string, search?: string): Promise<IProduct[]> {
     let products: IProduct[] = [];
 
     // Try to get from cache first
@@ -61,8 +61,8 @@ export class ProductProvider {
 
     // Apply filters
     let filtered = products;
-    if (category) {
-      filtered = filtered.filter(p => p.Categoría === category);
+    if (categoryId) {
+      filtered = filtered.filter(p => String(p.Categoría) === String(categoryId));
     }
     if (search) {
       const s = search.toLowerCase();
@@ -91,7 +91,7 @@ export class ProductProvider {
   static async createProduct(
     nombre: string, 
     descripcion: string, 
-    categoria: string, 
+    categoriaId: string, 
     precio: number, 
     imageBase64?: string
   ): Promise<boolean> {
@@ -103,7 +103,7 @@ export class ProductProvider {
         action: "createProduct",
         nombre,
         descripcion,
-        categoria,
+        categoriaId,
         precio,
         imageBase64
       }),
@@ -124,7 +124,7 @@ export class ProductProvider {
     id: string,
     nombre: string, 
     descripcion: string, 
-    categoria: string, 
+    categoriaId: string, 
     precio: number, 
     currentImageUrl: string,
     imageBase64?: string
@@ -138,7 +138,7 @@ export class ProductProvider {
         id,
         nombre,
         descripcion,
-        categoria,
+        categoriaId,
         precio,
         currentImageUrl,
         imageBase64
@@ -178,48 +178,37 @@ export class ProductProvider {
     return true;
   }
 
-  static async searchProducts(query: string): Promise<IProduct[]> {
-    if (!SCRIPT_URL) throw new Error("VITE_GOOGLE_APPS_SCRIPT_URL no está configurada.");
 
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "searchProducts",
-        query
-      }),
-    });
-    
-    if (!response.ok) throw new Error("Error de conexión al buscar productos");
-    
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.error || "No se pudo realizar la búsqueda");
-    }
-    
-    let products = result.data || [];
-    
-    products = products.map((p: any) => {
-      let imageUrl = String(p.URL_Imagen || "");
+  static async checkTriggersAndUpdateCache(): Promise<{ productsChanged: boolean, categoriesChanged: boolean }> {
+    let flags = { productsChanged: false, categoriesChanged: false };
+    if (!SCRIPT_URL) return flags;
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=getTriggers`);
       
-      const fileIdMatch = imageUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      let fileId = null;
-      
-      if (fileIdMatch && fileIdMatch[1]) {
-        fileId = fileIdMatch[1];
-      } else {
-        const idMatch = imageUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-        if (idMatch && idMatch[1]) {
-          fileId = idMatch[1];
+      const result = await response.json();
+      console.log("result", result);
+      if (result.success) {
+        const localProdTrigger = StorageProvider.get<number>("products_trigger");
+        const remoteProdTrigger = Number(result.productsTrigger);
+        
+        if (remoteProdTrigger && localProdTrigger !== remoteProdTrigger) {
+          StorageProvider.clearCache("products");
+          StorageProvider.set("products_trigger", remoteProdTrigger);
+          flags.productsChanged = true;
+        }
+
+        const localCatTrigger = StorageProvider.get<number>("categories_trigger");
+        const remoteCatTrigger = Number(result.categoriesTrigger);
+        
+        if (remoteCatTrigger && localCatTrigger !== remoteCatTrigger) {
+          StorageProvider.clearCache("categories");
+          StorageProvider.set("categories_trigger", remoteCatTrigger);
+          flags.categoriesChanged = true;
         }
       }
-      
-      if (fileId) {
-        imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-      }
-      
-      return { ...p, URL_Imagen: imageUrl, Categoría: p.Categoría || p.Categoria } as IProduct;
-    });
-
-    return products;
+    } catch (e) {
+      console.error("Error checking triggers", e);
+    }
+    return flags;
   }
 }

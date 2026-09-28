@@ -2,11 +2,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { IProduct } from "../interfaces/IProduct";
 import { ProductProvider } from "../providers/ProductProvider";
 import { useLoaderContext } from "./LoaderContext";
+import { useCategoryContext } from "./CategoryContext";
 
 interface DataContextType {
   products: IProduct[];
   isLoading: boolean;
-  refreshData: (category?: string, search?: string) => Promise<void>;
+  refreshData: (categoryId?: string, search?: string) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
 }
 
@@ -16,23 +17,14 @@ export function DataContextProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { showLoader, hideLoader } = useLoaderContext();
+  const { refreshCategories } = useCategoryContext();
 
-  const loadData = async (category?: string, search?: string) => {
+  const loadData = async (categoryId?: string, search?: string) => {
     try {
       setIsLoading(true);
-      if (search) {
-        showLoader("Buscando productos...");
-        const prodData = await ProductProvider.searchProducts(search);
-        if (category) {
-          setProducts(prodData.filter(p => p.Categoría === category));
-        } else {
-          setProducts(prodData);
-        }
-        hideLoader();
-      } else {
-        const prodData = await ProductProvider.getProducts(category);
-        setProducts(prodData);
-      }
+      // Buscamos localmente con los datos en caché (StorageProvider/Memoria)
+      const prodData = await ProductProvider.getProducts(categoryId, search);
+      setProducts(prodData);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -42,6 +34,19 @@ export function DataContextProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadData();
+
+    // Verificación silenciosa (Stale-While-Revalidate) usando triggers
+    const checkUpdates = async () => {
+      const { productsChanged, categoriesChanged } = await ProductProvider.checkTriggersAndUpdateCache();
+      if (productsChanged) {
+        const freshData = await ProductProvider.getProducts();
+        setProducts(freshData);
+      }
+      if (categoriesChanged) {
+        await refreshCategories();
+      }
+    };
+    checkUpdates();
   }, []);
 
   const deleteProduct = async (id: string) => {

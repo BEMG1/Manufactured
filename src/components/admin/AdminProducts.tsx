@@ -25,7 +25,7 @@ export function AdminProducts() {
   // Form State
   const [nombre, setNombre] = useState("");
   const [desc, setDesc] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [precio, setPrecio] = useState<number | "">("");
   const [currentImage, setCurrentImage] = useState(""); 
   const [imageBase64, setImageBase64] = useState(""); 
@@ -41,7 +41,7 @@ export function AdminProducts() {
     setEditingId(null);
     setNombre("");
     setDesc("");
-    setCategoria(categories.length > 0 ? categories[0].name : "");
+    setCategoryId(categories.length > 0 ? categories[0].id : "");
     setPrecio("");
     setCurrentImage("");
     setImageBase64("");
@@ -55,7 +55,7 @@ export function AdminProducts() {
     setEditingId(String(product.ID || (product as any).Id));
     setNombre(product.Nombre);
     setDesc(product.Descripción);
-    setCategoria(product.Categoría);
+    setCategoryId(product.Categoría);
     setPrecio(product.Precio);
     setCurrentImage(product.URL_Imagen || "");
     setImageBase64("");
@@ -86,7 +86,7 @@ export function AdminProducts() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !categoria || precio === "") {
+    if (!nombre || !categoryId || precio === "") {
       setError("Nombre, Categoría y Precio son obligatorios.");
       return;
     }
@@ -100,7 +100,7 @@ export function AdminProducts() {
           editingId,
           nombre,
           desc,
-          categoria,
+          categoryId,
           Number(precio),
           currentImage,
           imageBase64 || undefined
@@ -109,7 +109,7 @@ export function AdminProducts() {
         await ProductProvider.createProduct(
           nombre,
           desc,
-          categoria,
+          categoryId,
           Number(precio),
           imageBase64 || undefined
         );
@@ -236,7 +236,7 @@ export function AdminProducts() {
                     <td className="px-6 py-3 font-medium text-gray-900">{product.Nombre}</td>
                     <td className="px-6 py-3">
                       <span className="px-3 py-1 bg-brand-teal/10 text-brand-teal text-xs rounded-full font-medium">
-                        {product.Categoría}
+                        {categories.find(c => c.id === product.Categoría)?.name || product.Categoría}
                       </span>
                     </td>
                     <td className="px-6 py-3 text-gray-600">
@@ -367,14 +367,14 @@ export function AdminProducts() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
                     <select
-                      value={categoria}
-                      onChange={(e) => setCategoria(e.target.value)}
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
                       disabled={isSubmitting}
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-brand-teal outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Selecciona una...</option>
                       {categories.map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
+                        <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
                   </div>
